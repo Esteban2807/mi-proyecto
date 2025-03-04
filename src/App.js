@@ -3,7 +3,7 @@ import Calculadora from "./components/Calculadora";
 import Recordatorio from "./components/Recordatorio";
 import ListaAnimales from "./components/ListaAnimales";
 import FormularioAnimal from "./components/FormularioAnimal";
-import Login from "./components/login";
+import Login  from "./components/Login";
 import Register from "./components/Register";
 
 
@@ -25,7 +25,8 @@ function App() {
         <FormularioAnimal />
     </div>
     <div>
-        <Login />
+      <Login onLogin={() => console.log("Usuario autenticado")} />
+
         </div>
 
         <div>

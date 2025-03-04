@@ -1,61 +1,53 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const express = require("express");
+const bcrypt = require("bcryptjs"); // Para encriptar la contraseña
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
-const SECRET_KEY = "memes_xD"; // ¡Cámbiala por una clave más segura!
 
-// 📌 Registro de usuario
-router.post('/register', async (req, res) => {
+// Ruta para registrar usuario
+router.post("/register", async (req, res) => {
     try {
-        const { username, password } = req.body;
-        
+        const { email, password } = req.body;
+
         // Verificar si el usuario ya existe
-        const usuarioExistente = await User.findOne({ username });
-        if (usuarioExistente) {
-            return res.status(400).json({ mensaje: "❌ El usuario ya existe" });
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ mensaje: "El usuario ya está registrado" });
         }
 
-        // Encriptar la contraseña
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
+        // Encriptar la contraseña antes de guardarla
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Crear nuevo usuario
-        const nuevoUsuario = new User({ username, password: passwordHash });
-        await nuevoUsuario.save();
+        // Crear el usuario en la base de datos
+        const newUser = new User({ email, password: hashedPassword });
+        await newUser.save();
 
-        res.json({ mensaje: "✅ Usuario registrado con éxito" });
+        res.status(201).json({ mensaje: "Usuario registrado correctamente" });
     } catch (error) {
-        console.error("❌ Error en registro:", error);
-        res.status(500).json({ mensaje: "Error en el registro" });
+        res.status(500).json({ mensaje: "Error en el servidor", error });
     }
 });
-
-// 📌 Inicio de sesión
-router.post('/login', async (req, res) => {
+// Ruta para login
+router.post("/login", async (req, res) => {
     try {
-        const { username, password } = req.body;
-        
-        // Buscar usuario en la BD
-        const usuario = await User.findOne({ username });
-        if (!usuario) {
-            return res.status(400).json({ mensaje: "❌ Usuario o contraseña incorrectos" });
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(401).json({ mensaje: "Credenciales inválidas" });
         }
 
-        // Comparar contraseñas
-        const esValido = await bcrypt.compare(password, usuario.password);
-        if (!esValido) {
-            return res.status(400).json({ mensaje: "❌ Usuario o contraseña incorrectos" });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ mensaje: "Credenciales inválidas" });
         }
 
-        // Generar token JWT
-        const token = jwt.sign({ id: usuario._id }, SECRET_KEY, { expiresIn: "1h" });
-
-        res.json({ mensaje: "✅ Inicio de sesión exitoso", token });
+        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
+        res.json({ token });
     } catch (error) {
-        console.error("❌ Error en login:", error);
-        res.status(500).json({ mensaje: "Error en el inicio de sesión" });
+        console.error("Error en el login:", error);
+        res.status(500).json({ mensaje: "Error en el servidor" });
     }
 });
 

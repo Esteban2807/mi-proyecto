@@ -17,16 +17,18 @@ const Login = ({ onLogin }) => {
                 },
                 body: JSON.stringify({ email, password }),
             });
-
+    
             const data = await response.json();
-
+            console.log("Respuesta del servidor:", data); // 👀 Agregamos esto para ver la respuesta en consola
+    
             if (response.ok) {
                 localStorage.setItem("token", data.token);
-                onLogin(); // Llama a la función para actualizar el estado global
+                onLogin();
             } else {
                 setError(data.mensaje || "Error al iniciar sesión");
             }
         } catch (err) {
+            console.error("Error en la conexión:", err);
             setError("Error de conexión");
         }
     };

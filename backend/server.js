@@ -1,7 +1,8 @@
+require('dotenv').config(); 
 const express = require('express');
+const authRoutes = require("./routes/authRoutes");
 const cors = require('cors');
 const mongoose = require('mongoose');
-require('dotenv').config();
 
 // Inicializar Express
 const app = express();
@@ -19,6 +20,9 @@ mongoose.connect(process.env.MONGO_URI, {
 // Importar rutas
 const animalRoutes = require('./routes/animalRoutes');
 app.use('/animales', animalRoutes);  // 👈 ¡IMPORTANTE!
+app.use("/auth", authRoutes);
+
+
 
 // Iniciar servidor
 const PORT = process.env.PORT || 5000;
@@ -30,8 +34,5 @@ app.listen(PORT, () => {
 app.get('/animales', (req, res) => {
     res.send("📋 API de animales funcionando correctamente!");
 });
-
-const authRoutes = require('./routes/authRoutes');
-app.use('/auth', authRoutes);
 
 
